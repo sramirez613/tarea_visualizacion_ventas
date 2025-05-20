@@ -64,3 +64,29 @@ payment_counts.columns = ["Método de Pago", "Cantidad"]
 fig4 = px.pie(payment_counts, names="Método de Pago", values="Cantidad",
               title="Distribución de Métodos de Pago Preferidos")
 st.plotly_chart(fig4, use_container_width=True)
+
+# --- Visualización 5: Gráfico 3D de Costo, Ganancia y Precio ---
+st.markdown("## 5. Relación 3D: Costo, Ganancia y Precio Unitario")
+fig5 = px.scatter_3d(
+    df_filtered,
+    x='cogs',
+    y='gross income',
+    z='Unit price',
+    color='Product line',
+    title='Relación 3D: Costo, Ganancia y Precio',
+    opacity=0.7
+)
+st.plotly_chart(fig5)
+
+# --- Visualización 6: Matriz de Correlación ---
+st.markdown("## 6. Matriz de Correlación de Variables Numéricas")
+numeric_cols = ['Unit price', 'Quantity', 'Tax 5%', 'Total', 'cogs', 'gross income', 'Rating']
+corr = df_filtered[numeric_cols].corr()
+fig6 = px.imshow(corr, text_auto=True, title='Matriz de Correlación', color_continuous_scale='Viridis')
+st.plotly_chart(fig6)
+
+# --- Visualización 7: Ingreso Bruto por Sucursal y Línea de Producto (Sunburst) ---
+st.markdown("## 7. Ingreso Bruto por Sucursal y Línea de Producto")
+sunburst_data = df_filtered.groupby(['Branch', 'Product line'])['gross income'].sum().reset_index()
+fig7 = px.sunburst(sunburst_data, path=['Branch', 'Product line'], values='gross income', title='Ingreso Bruto por Sucursal y Línea de Producto')
+st.plotly_chart(fig7)
