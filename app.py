@@ -5,12 +5,17 @@ import streamlit as st
 # --- Cargar datos ---
 df = pd.read_csv("data.csv")
 
+# --- Asegurar formato de fecha ---
+df["Date"] = pd.to_datetime(df["Date"])
+
 # --- Título y descripción ---
-st.title("Dashboard de Ventas de Tienda de Conveniencia")
+st.title("Análisis Visual de Ventas - Tienda de Conveniencia")
 st.markdown("""
-Este dashboard presenta las visualizaciones más relevantes para comprender la evolución de las ventas,
-el comportamiento de los clientes y sus preferencias de pago. Se incluyen filtros para analizar por sucursal,
-línea de producto y tipo de cliente.
+Este dashboard interactivo permite explorar las ventas de una tienda de conveniencia, 
+proporcionando una visión clara del comportamiento de los clientes, líneas de productos, 
+métodos de pago y desempeño general por sucursal.
+
+Utiliza los filtros de la barra lateral para personalizar el análisis según tus necesidades.
 """)
 
 # --- Filtros interactivos ---
@@ -27,27 +32,35 @@ df_filtered = df[
 ]
 
 # --- KPIs destacados ---
-st.metric("Ventas Totales", f"${df_filtered['Total'].sum():,.2f}")
-st.metric("Ingreso Bruto", f"${df_filtered['gross income'].sum():,.2f}")
-st.metric("Promedio de Calificación", f"{df_filtered['Rating'].mean():.2f}")
+col1, col2, col3 = st.columns(3)
+col1.metric("Ventas Totales", f"${df_filtered['Total'].sum():,.2f}")
+col2.metric("Ingreso Bruto", f"${df_filtered['gross income'].sum():,.2f}")
+col3.metric("Calificación Promedio", f"{df_filtered['Rating'].mean():.2f}")
 
 # --- Visualizaciones ---
-st.markdown("## 1. Evolución de las Ventas Totales")
-ventas_diarias = df_filtered.groupby("Date")["Total"].sum().reset_index()
-fig1 = px.line(ventas_diarias, x="Date", y="Total", title="Evolución de las Ventas Totales")
-st.plotly_chart(fig1)
+st.markdown("## 1. Evolución de las Ventas Totales por Fecha")
+ventas_diarias = df_filtered.groupby("Date")["Total"].sum().reset_index().sort_values("Date")
+fig1 = px.line(ventas_diarias, x="Date", y="Total",
+               title="Tendencia de Ventas Diarias",
+               labels={"Total": "Ventas ($)", "Date": "Fecha"})
+st.plotly_chart(fig1, use_container_width=True)
 
 st.markdown("## 2. Ingresos por Línea de Producto")
 ingresos_producto = df_filtered.groupby("Product line")["Total"].sum().reset_index()
-fig2 = px.bar(ingresos_producto, x="Product line", y="Total", color="Product line", title="Ingresos por Línea de Producto")
-st.plotly_chart(fig2)
+fig2 = px.bar(ingresos_producto, x="Product line", y="Total", color="Product line",
+              title="Ingresos Totales por Categoría de Producto",
+              labels={"Total": "Ingresos ($)", "Product line": "Categoría"})
+st.plotly_chart(fig2, use_container_width=True)
 
-st.markdown("## 3. Gasto por Tipo de Cliente")
-fig3 = px.box(df_filtered, x="Customer type", y="Total", color="Customer type", title="Gasto por Tipo de Cliente")
-st.plotly_chart(fig3)
+st.markdown("## 3. Comparación del Gasto por Tipo de Cliente")
+fig3 = px.box(df_filtered, x="Customer type", y="Total", color="Customer type",
+              title="Distribución del Gasto por Tipo de Cliente",
+              labels={"Total": "Total Gasto ($)", "Customer type": "Tipo de Cliente"})
+st.plotly_chart(fig3, use_container_width=True)
 
-st.markdown("## 4. Métodos de Pago Preferidos")
+st.markdown("## 4. Preferencias de Método de Pago")
 payment_counts = df_filtered["Payment"].value_counts().reset_index()
-payment_counts.columns = ["Payment Method", "Count"]
-fig4 = px.pie(payment_counts, names="Payment Method", values="Count", title="Métodos de Pago Preferidos")
-st.plotly_chart(fig4)
+payment_counts.columns = ["Método de Pago", "Cantidad"]
+fig4 = px.pie(payment_counts, names="Método de Pago", values="Cantidad",
+              title="Distribución de Métodos de Pago Preferidos")
+st.plotly_chart(fig4, use_container_width=True)
